@@ -17,7 +17,7 @@ class Joueur
     #[ORM\Column(length: 30)]
     private ?string $nom = null;
 
-    #[ORM\Column(length: 15)]
+    #[ORM\Column(length: 15, name:"motDePasse")]
     private ?string $motDePasse = null;
 
     #[ORM\Column(length: 255)]
@@ -26,10 +26,10 @@ class Joueur
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $creation = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name:"nbLogin")]
     private ?int $nbLogin = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, name:"dernierLogin")]
     private ?\DateTimeInterface $dernierLogin = null;
 
     public function getId(): ?int
