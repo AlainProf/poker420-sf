@@ -22,11 +22,11 @@ class JoueurPartie
     #[ORM\Column]
     private ?int $engagement = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'parties')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Joueur $joueur = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'joueurs')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Partie $partie = null;
 

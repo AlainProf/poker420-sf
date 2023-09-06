@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\PartieRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -22,6 +24,14 @@ class Partie
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $fin = null;
+
+    #[ORM\OneToMany(mappedBy: 'partie', targetEntity: JoueurPartie::class)]
+    private Collection $joueurs;
+
+    public function __construct()
+    {
+        $this->joueurs = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -60,6 +70,36 @@ class Partie
     public function setFin(?\DateTimeInterface $fin): static
     {
         $this->fin = $fin;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, JoueurPartie>
+     */
+    public function getJoueurs(): Collection
+    {
+        return $this->joueurs;
+    }
+
+    public function addJoueur(JoueurPartie $joueur): static
+    {
+        if (!$this->joueurs->contains($joueur)) {
+            $this->joueurs->add($joueur);
+            $joueur->setPartie($this);
+        }
+
+        return $this;
+    }
+
+    public function removeJoueur(JoueurPartie $joueur): static
+    {
+        if ($this->joueurs->removeElement($joueur)) {
+            // set the owning side to null (unless already changed)
+            if ($joueur->getPpartie() === $this) {
+                $joueur->setPartie(null);
+            }
+        }
 
         return $this;
     }
