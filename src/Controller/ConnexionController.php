@@ -24,9 +24,11 @@ class ConnexionController extends AbstractController
 	//
     //-------------------------------------
     #[Route('/getJoueurs')]
-    public function getJoueurs(Connection $connexion): JsonResponse
+    public function getJoueurs(Request $req, Connection $connexion): JsonResponse
     {
-		$joueurs = $connexion->FetchAllAssociative('select * from joueur');
+		// initialisation par le GET
+		$idJ = $req->query->get('idJ');
+		$joueurs = $connexion->FetchAllAssociative("select * from joueur where id != $idJ");
         return $this->json($joueurs);
     }
 

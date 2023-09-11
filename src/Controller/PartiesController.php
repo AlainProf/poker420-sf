@@ -14,6 +14,8 @@ use App\Entity\Partie;
 use App\Entity\JoueurPartie;
 use App\Entity\Joueur;
 
+use App\Util;
+
 ini_set('date.timezone', 'America/New_York');
 
 header('Access-Control-Allow-Origin: *');
@@ -52,6 +54,7 @@ class PartiesController extends AbstractController
 			$nbJoueurs=0;
 			$tabMains =array();
 			
+			
 			for($i=0; $i<10; $i++)
 			{
 				if (!empty($tabJ[$i]))
@@ -72,7 +75,9 @@ class PartiesController extends AbstractController
 			}
 			$em->persist($p);
 			$em->flush();
-			return $this->json("OK $nbJoueurs joueurs");
+			
+			$partieInfo = $this->PreparerReponse($p);
+			return $this->json($partieInfo);
 		}
 		else
 		{
@@ -84,8 +89,80 @@ class PartiesController extends AbstractController
     //-------------------------------------
 	//
     //-------------------------------------
+    function PreparerReponse($partie)
+	{
+		$tabInfo = array();
+        $tabInfo['id'] = $partie->getId();
+        $tabInfo['debut'] = $partie->getDebut();
+        $tabInfo['joueurs'] = array();
+		
+		$tabJoueurs = $partie->getJoueurs();
+		
+		
+		Util::tr("Partie " . $tabInfo['id'] . "\nPre boucle\nNb joueurs:" . count($tabJoueurs));
+		for($i=0; $i<count($tabJoueurs); $i++)
+		{
+			$unJoueur['id'] = $tabJoueurs[$i]->getJoueur()->getId();
+			$unJoueur['nom'] = $tabJoueurs[$i]->getJoueur()->getNom();
+			$unJoueur['position'] = $tabJoueurs[$i]->getPosition();
+			$unJoueur['capital'] = $tabJoueurs[$i]->getCapital();
+			$unJoueur['engagement'] = $tabJoueurs[$i]->getEngagement();
+            Util::tr("iter $i");
+			$tabInfo['joueurs'][] = $unJoueur;
+		}
+		return $tabInfo;
+
+	}
+	
+    //-------------------------------------
+	//
+    //-------------------------------------
 	function infoValides($n, $mdp, $c)
 	{
 		return true;
 	}
+	
+	//-----------------------------------
+	//
+	//-----------------------------------
+    #[Route('/getPartiesDUnJoueur')]
+	public function getPartiesDUnJoueur(Request $req, ManagerRegistry $doctrine, Connection $connexion): JsonResponse
+    {
+        /* initialisation par le $_POST */
+		$joueurID = $req->request->get('idJ');
+		Util::tr("Id du joueur conne: $joueurID");
+		
+		$repoJoueurs = $doctrine->getManager()->getRepository(Joueur::class);
+        $joueur = $repoJoueurs->find($joueurID);
+
+        
+		$tabParties = $joueur->getParties();
+		
+		$reponse = array();
+        for($i=0; $i<count($tabParties); $i++)
+        {
+			$id = $tabParties[$i]->getPartie()->getId();
+			$reponse[] = $id * 1;
+		}
+        return $this->json($reponse);
+    }
+		
+	//-----------------------------------
+	//
+	//-----------------------------------
+    #[Route('/getInfoPartieEnCours')]
+	public function getInfoPartieEnCours(Request $req, ManagerRegistry $doctrine, Connection $connexion): JsonResponse
+    {
+        $idPartie = $req->request->get('idPartie');
+		Util::tr("Id de la partie $idPartie");
+		$joueurID = $req->request->get('idJConnecte');
+		$repoParties = $doctrine->getManager()->getRepository(Partie::class);
+        $partie = $repoParties->find($idPartie);
+        Util::tr("après le find: " . $partie->getId());
+
+        $reponse = $this->PreparerReponse($partie,$joueurID);
+		//Util::tr($reponse);
+        return $this->json($reponse);
+    }	
+	
 }
