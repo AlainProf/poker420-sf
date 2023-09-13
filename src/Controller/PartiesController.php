@@ -28,61 +28,69 @@ class PartiesController extends AbstractController
     #[Route('/creationPartie')]
     public function creationPartie(Request $req, ManagerRegistry $doctrine): JsonResponse
     {
-		// initialisation par le POST
-		$tabJ[]= $req->request->get('idJ0');
-		$tabJ[]= $req->request->get('idJ1');
-		$tabJ[]= $req->request->get('idJ2');
-		$tabJ[]= $req->request->get('idJ3');
-		$tabJ[]= $req->request->get('idJ4');
-		$tabJ[]= $req->request->get('idJ5');
-		$tabJ[]= $req->request->get('idJ6');
-		$tabJ[]= $req->request->get('idJ7');
-		$tabJ[]= $req->request->get('idJ8');
-		$tabJ[]= $req->request->get('idJ9');
-		
-		$debut = new \DateTime();
-     	if ($req->getMethod() == 'POST')
+		$jwt= $req->request->get('jwt');
+		if (util::JWTokenEstValide($jwt))
 		{
-			$em = $doctrine->getManager();
-			$p = new Partie();
+					// initialisation par le POST
+			$tabJ[]= $req->request->get('idJ0');
+			$tabJ[]= $req->request->get('idJ1');
+			$tabJ[]= $req->request->get('idJ2');
+			$tabJ[]= $req->request->get('idJ3');
+			$tabJ[]= $req->request->get('idJ4');
+			$tabJ[]= $req->request->get('idJ5');
+			$tabJ[]= $req->request->get('idJ6');
+			$tabJ[]= $req->request->get('idJ7');
+			$tabJ[]= $req->request->get('idJ8');
+			$tabJ[]= $req->request->get('idJ9');
 			
-			$p->setDebut($debut);
-			$p->setFin(null);
-			$p->setIdGagnant(null);
-			
-			$repoJoueurs = $em->getRepository(Joueur::class);
-			$nbJoueurs=0;
-			$tabMains =array();
-			
-			
-			for($i=0; $i<10; $i++)
+			$debut = new \DateTime();
+			if ($req->getMethod() == 'POST')
 			{
-				if (!empty($tabJ[$i]))
+				$em = $doctrine->getManager();
+				$p = new Partie();
+				
+				$p->setDebut($debut);
+				$p->setFin(null);
+				$p->setIdGagnant(null);
+				
+				$repoJoueurs = $em->getRepository(Joueur::class);
+				$nbJoueurs=0;
+				$tabMains =array();
+				
+				
+				for($i=0; $i<10; $i++)
 				{
-					$joueurAInserer = $repoJoueurs->find($tabJ[$i]);
-					
-					$jp = new JoueurPartie();
-					$jp->setJoueur($joueurAInserer);
-					$jp->setPosition($i);
-					$jp->setCapital(100);
-					$jp->setEngagement(0);
-					
-					$em->persist($jp);
-					$p->addJoueur($jp);
-					$nbJoueurs++;
+					if (!empty($tabJ[$i]))
+					{
+						$joueurAInserer = $repoJoueurs->find($tabJ[$i]);
+						
+						$jp = new JoueurPartie();
+						$jp->setJoueur($joueurAInserer);
+						$jp->setPosition($i);
+						$jp->setCapital(100);
+						$jp->setEngagement(0);
+						
+						$em->persist($jp);
+						$p->addJoueur($jp);
+						$nbJoueurs++;
+					}
+						
 				}
-					
+				$em->persist($p);
+				$em->flush();
+				
+				$partieInfo = $this->PreparerReponse($p);
+				return $this->json($partieInfo);
 			}
-			$em->persist($p);
-			$em->flush();
-			
-			$partieInfo = $this->PreparerReponse($p);
-			return $this->json($partieInfo);
+			else
+			{
+			return $this->json("erreur 66");
+	
+			}
 		}
 		else
 		{
-		   return $this->json("erreur 66");
-
+			return $this->json("Erreur de piratage");
 		}
     }
 	
@@ -130,7 +138,7 @@ class PartiesController extends AbstractController
     {
         /* initialisation par le $_POST */
 		$joueurID = $req->request->get('idJ');
-		Util::tr("Id du joueur conne: $joueurID");
+		//Util::tr("Id du joueur conne: $joueurID");
 		
 		$repoJoueurs = $doctrine->getManager()->getRepository(Joueur::class);
         $joueur = $repoJoueurs->find($joueurID);
@@ -154,11 +162,11 @@ class PartiesController extends AbstractController
 	public function getInfoPartieEnCours(Request $req, ManagerRegistry $doctrine, Connection $connexion): JsonResponse
     {
         $idPartie = $req->request->get('idPartie');
-		Util::tr("Id de la partie $idPartie");
+		//Util::tr("Id de la partie $idPartie");
 		$joueurID = $req->request->get('idJConnecte');
 		$repoParties = $doctrine->getManager()->getRepository(Partie::class);
         $partie = $repoParties->find($idPartie);
-        Util::tr("après le find: " . $partie->getId());
+        //Util::tr("après le find: " . $partie->getId());
 
         $reponse = $this->PreparerReponse($partie,$joueurID);
 		//Util::tr($reponse);
