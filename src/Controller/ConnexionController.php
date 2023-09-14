@@ -10,16 +10,10 @@ use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\Persistence\ManagerRegistry;  // Pour l'accès à l'entity manager de Doctrine
 use Doctrine\DBAL\Connection;              // Pour avoir accès à l'engin de query
 
-
-
-
-
-
 use App\Entity\Joueur;
 use App\util;
 
 ini_set('date.timezone', 'America/New_York');
-
 header('Access-Control-Allow-Origin: *');
 
 
@@ -122,7 +116,7 @@ class ConnexionController extends AbstractController
 				$jwt = util::genereJWToken($joueur[0]['id']);
 				util::logmsg("JWT: " . $jwt);
 				
-				$retJouer['jwt'] = $jwt;
+				$retJoueur['jwt'] = $jwt;
 				
 				return $this->json($retJoueur);
 			}

@@ -28,10 +28,14 @@ class PartiesController extends AbstractController
     #[Route('/creationPartie')]
     public function creationPartie(Request $req, ManagerRegistry $doctrine): JsonResponse
     {
+		
 		$jwt= $req->request->get('jwt');
+		util::logmsg("in création partie, JWT= $jwt");
+		
 		if (util::JWTokenEstValide($jwt))
 		{
-					// initialisation par le POST
+			util::logmsg("le jwt est valide");
+		    // initialisation par le POST
 			$tabJ[]= $req->request->get('idJ0');
 			$tabJ[]= $req->request->get('idJ1');
 			$tabJ[]= $req->request->get('idJ2');
@@ -46,6 +50,7 @@ class PartiesController extends AbstractController
 			$debut = new \DateTime();
 			if ($req->getMethod() == 'POST')
 			{
+				util::logmsg("ln 53");
 				$em = $doctrine->getManager();
 				$p = new Partie();
 				
@@ -56,10 +61,12 @@ class PartiesController extends AbstractController
 				$repoJoueurs = $em->getRepository(Joueur::class);
 				$nbJoueurs=0;
 				$tabMains =array();
-				
-				
+				util::logmsg("ln 64");
+					
 				for($i=0; $i<10; $i++)
 				{
+     				util::logmsg("ln 68 $i");
+
 					if (!empty($tabJ[$i]))
 					{
 						$joueurAInserer = $repoJoueurs->find($tabJ[$i]);
@@ -76,15 +83,21 @@ class PartiesController extends AbstractController
 					}
 						
 				}
+				util::logmsg("ln 86 ");
 				$em->persist($p);
 				$em->flush();
+				util::logmsg("ln 89 ");
 				
 				$partieInfo = $this->PreparerReponse($p);
+				util::logmsg("ln 92 ");
+
 				return $this->json($partieInfo);
 			}
 			else
 			{
-			return $this->json("erreur 66");
+			util::logmsg("Erreur de jwt");
+
+			   return $this->json("erreur 66");
 	
 			}
 		}
@@ -106,8 +119,7 @@ class PartiesController extends AbstractController
 		
 		$tabJoueurs = $partie->getJoueurs();
 		
-		
-		Util::tr("Partie " . $tabInfo['id'] . "\nPre boucle\nNb joueurs:" . count($tabJoueurs));
+		//Util::tr("Partie " . $tabInfo['id'] . "\nPre boucle\nNb joueurs:" . count($tabJoueurs));
 		for($i=0; $i<count($tabJoueurs); $i++)
 		{
 			$unJoueur['id'] = $tabJoueurs[$i]->getJoueur()->getId();
@@ -115,7 +127,7 @@ class PartiesController extends AbstractController
 			$unJoueur['position'] = $tabJoueurs[$i]->getPosition();
 			$unJoueur['capital'] = $tabJoueurs[$i]->getCapital();
 			$unJoueur['engagement'] = $tabJoueurs[$i]->getEngagement();
-            Util::tr("iter $i");
+            //Util::tr("iter $i");
 			$tabInfo['joueurs'][] = $unJoueur;
 		}
 		return $tabInfo;

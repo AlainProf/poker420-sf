@@ -11,7 +11,7 @@ use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
 
 
-class util
+class Util
 {
 	private static $cle = 'AMnJrfU6op3JZEXgdyOz8LlhxU3MN3fGDSFbfh6_nmxNFj01rRw4cM39GYd1NiSxX8f3uzwLe6c7F0bOs2PVkfh_BiQ1rTRLs_bnek23wasSBNTqVkKvDpNtjABIN7J0vPFDkydwHCW4xkATcAGEhnSRsVXpt2ZXLX7HwjE_FkU';
 	
@@ -89,7 +89,7 @@ class util
 	//-----------------------------------
 	//
 	//-----------------------------------
-    public static function logmsg($msg="", $traceUp=true, $ligne=true, $afficheDate=true)
+    public static function logmsg($msg="", $traceUp=false, $ligne=true, $afficheDate=true)
     {
 	   //return;	
 	   if ($traceUp)
