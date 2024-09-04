@@ -14,8 +14,6 @@ use App\Util;
 
 header('Access-Control-Allow-Origin: *');
 
-
-
 class Poker420Controller extends AbstractController
 {
     #[Route('/poker420', name: 'app_poker420')]
@@ -47,12 +45,7 @@ class Poker420Controller extends AbstractController
     public function connexion(ManagerRegistry $doctrine, Request $req, Connection $connexion): JsonResponse
     {
         $nom = $req->request->get('nom');
-        $motDePasse = $req->request->get('motDePasse');
-
-        $nom="Ilian";
-        $motDePasse = "11";
-
-        //dd($nom . " " . $motDePasse);
+        $motDePasse = $req->request->get('mot_de_passe');
 
         Util::logmsg("login info: $nom $motDePasse");
         //die();
@@ -66,7 +59,8 @@ class Poker420Controller extends AbstractController
                 $retMembre['id'] =  $membre[0]['id'];
                 $retMembre['nom'] =  $membre[0]['nom'];
                 $retMembre['courriel'] =  $membre[0]['courriel'];
-                $retMembre['motDePasse'] =  "hahaha";
+                $retMembre['mot_de_passe'] =  "hahaha";
+                $retMembre['choisi'] = false;
                 
 
                 return $this->json($retMembre);
@@ -74,4 +68,14 @@ class Poker420Controller extends AbstractController
         }
         return $this->json("");
     }
+
+    
+    #[Route('/getTousLesMembres')]
+    public function getTousLesMembres(ManagerRegistry $doctrine, Request $req, Connection $connexion): JsonResponse
+    {
+       $membres = $connexion->fetchAllAssociative("select * from membre order by nom");
+       //dd($membres);
+       return $this->json($membres);
+    }
+
 }
