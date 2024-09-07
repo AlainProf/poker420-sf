@@ -52,7 +52,6 @@ class Poker420Controller extends AbstractController
         $motDePasse = $req->request->get('mot_de_passe');
 
         Util::logmsg("login info: $nom $motDePasse");
-        //die();
         
         $membre = $connexion->FetchAllAssociative("select * from membre where nom = '$nom'");
 
