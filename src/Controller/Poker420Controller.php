@@ -27,18 +27,22 @@ class Poker420Controller extends AbstractController
     #[Route('/creationMembre', name: 'creationMembre')]
     public function creationMembre(ManagerRegistry $doctrine, Request $req): Response
     {
-        
-        $membre = new Membre();
-        $membre->setNom($req->request->get('nom'));
-        $membre->setCourriel($req->request->get('courriel'));
-        $membre->setMotDePasse($req->request->get('motDePasse'));
+        if ($req->request->get('nom') !== null)
+        {
+           $membre = new Membre();
+           $membre->setNom($req->request->get('nom'));
+           $membre->setCourriel($req->request->get('courriel'));
+           $membre->setMotDePasse($req->request->get('mot_de_passe'));
 
-        $em = $doctrine->getManager();
-        $em->persist($membre);
-        $em->flush();
-
-
-        return new Response($membre->getId());
+           $em = $doctrine->getManager();
+           $em->persist($membre);
+           $em->flush();
+           return new Response($membre->getId());
+        }
+        else
+        {
+           return new Response(0);  
+        }
     }
 
     #[Route('/connexion', name: 'connexion')]

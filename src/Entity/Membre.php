@@ -32,7 +32,7 @@ class Membre
         return $this->nom;
     }
 
-    public function setNom(string $nom): static
+    public function setNom(?string $nom): static
     {
         $this->nom = $nom;
 
@@ -44,7 +44,7 @@ class Membre
         return $this->courriel;
     }
 
-    public function setCourriel(string $courriel): static
+    public function setCourriel(?string $courriel): static
     {
         $this->courriel = $courriel;
 
@@ -56,7 +56,7 @@ class Membre
         return $this->motDePasse;
     }
 
-    public function setMotDePasse(string $motDePasse): static
+    public function setMotDePasse(?string $motDePasse): static
     {
         $this->motDePasse = $motDePasse;
 
