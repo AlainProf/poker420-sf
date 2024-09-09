@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\MembreRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: MembreRepository::class)]
@@ -21,6 +23,17 @@ class Membre
 
     #[ORM\Column(length: 20)]
     private ?string $motDePasse = null;
+
+    /**
+     * @var Collection<int, JoueurPartie>
+     */
+    #[ORM\OneToMany(targetEntity: JoueurPartie::class, mappedBy: 'membre')]
+    private Collection $parties;
+
+    public function __construct()
+    {
+        $this->parties = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -59,6 +72,36 @@ class Membre
     public function setMotDePasse(?string $motDePasse): static
     {
         $this->motDePasse = $motDePasse;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, JoueurPartie>
+     */
+    public function getParties(): Collection
+    {
+        return $this->parties;
+    }
+
+    public function addParty(JoueurPartie $party): static
+    {
+        if (!$this->parties->contains($party)) {
+            $this->parties->add($party);
+            $party->setMembre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeParty(JoueurPartie $party): static
+    {
+        if ($this->parties->removeElement($party)) {
+            // set the owning side to null (unless already changed)
+            if ($party->getMembre() === $this) {
+                $party->setMembre(null);
+            }
+        }
 
         return $this;
     }
