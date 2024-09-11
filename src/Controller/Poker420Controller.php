@@ -57,8 +57,11 @@ class Poker420Controller extends AbstractController
         Util::logmsg("login info: $nom $motDePasse");
         
         $membre = $connexion->FetchAllAssociative("select * from membre where nom = '$nom'");
+        //dd($membre);
+        //$membre = $doctrine->getrepository(Membre:class)->find()
 
-        if (isset($membre[0]))
+        Util::logmsg($membre[0]['mot_de_passe']);
+        if (isset($membre[0]['mot_de_passe']))
         {
             if ($membre[0]['mot_de_passe'] == $motDePasse)
             {
@@ -67,12 +70,14 @@ class Poker420Controller extends AbstractController
                 $retMembre['courriel'] =  $membre[0]['courriel'];
                 $retMembre['mot_de_passe'] =  "hahaha";
                 $retMembre['choisi'] = false;
-                
+
+                $retMembre['jwt'] = Util::genererJWToken($membre[0]['id']);
+         
 
                 return $this->json($retMembre);
             }
         }
-        return $this->json("");
+        return $this->json("erreur 77");
     }
 
     
@@ -169,17 +174,168 @@ class Poker420Controller extends AbstractController
     public function getPartiesDUnMembre(ManagerRegistry $doctrine, Request $req, Connection $connexion): JsonResponse
     {
         $idJ = $req->request->get('idj');
-        $tabIdParties = [];
+        $jwt = $req->request->get('jwt');
 
-        $membre = $doctrine->getRepository(Membre::class)->find($idJ);
-        $parties = $membre->getParties();
+        Util::logmsg($jwt);
+        if (Util::JWTokenEstValide($jwt))
+        {  
 
-        foreach($parties as $jp)
-        {
+           $tabIdParties = [];
+
+           $membre = $doctrine->getRepository(Membre::class)->find($idJ);
+          $parties = $membre->getParties();
+
+          foreach($parties as $jp)
+          {
             $idp = $jp->getPartie()->getId();
             $tabIdParties[] = $idp;
-        }
-        return $this->json( $tabIdParties);
+          }
+          return $this->json( $tabIdParties);
+      }
+      else
+      {
+        dd("Token invalide");
+      }
     }
+
+    
+    #[Route('/getInfoPartie')]
+    public function getInfoPartie(ManagerRegistry $doctrine, Request $req, Connection $connexion): JsonResponse
+    {
+        $idP = $req->request->get('idP');
+       
+        $partie = $doctrine->getRepository(Partie::class)->find($idP);
+        $infoP = $this->preparerReponse($partie);
+        return $this->json( $infoP);
+    }
+
+    
+    //-----------------------------------
+	//
+	//-----------------------------------
+    #[Route('/televerseAvatar')]
+    public function televerseAvatar(Request $req, ManagerRegistry $doctrine): Response
+    {
+		//$this->setTrace(); 
+		Util::logmsg("route televerseAvatar()");
+		$result=array();
+		/*$token = $req->request->get('acces');
+		if (!Util::JWTokenEstValide($token))
+		{
+			$result["status"]=0;
+            $result["message"]="erreur: le token n et pas valide";
+			Util::logmsg("On quitte televerseAvatar");
+		    return new Response(json_encode($result));
+		}*/
+		
+        if ($req->getMethod() === 'POST')
+        {
+		   Util::logmsg("c'est un post");
+		   if ($this->estUnPng())
+		   {
+			  Util::logmsg("png on traiteImage()");
+              $this->traiterImage($req);
+		   }
+		   else
+		   {
+			 Util::logmsg("mauvaise extension");
+             $result["status"]=0;
+             $result["message"]="erreur: on accepte seulement les png";
+		   }
+        }
+        else
+        {
+		   Util::logmsg("Erreur ce n'est pas un png");
+           $result["status"]=0;
+           $result["message"]="erreur: requête n'est pas un post";
+        }
+		Util::logmsg("On quitte televerseAvatar");
+		return new Response(json_encode($result));
+	}
+   //------------------------------------------------------------------
+   //
+   //------------------------------------------------------------------
+   function estUnPng()
+   {
+	   $nom = $_FILES['file']['name'];
+	   
+	   $pattern = '/\.png$/i';
+	   if (preg_match($pattern, $nom) )
+		   return true;
+	   return false;
+   }
+      
+   //------------------------------------------------------------------
+   //
+   //------------------------------------------------------------------
+   function traiterImage($req)
+   {
+	global $result;
+	global $maBD;
+	Util::logmsg("debut de traiterImage()");
+	
+	$joueurId = $req->request->get('joueurId');
+	Util::logmsg("joueurId : $joueurId");
+   	
+	if(!empty($_FILES['file']['name']))
+	{
+		Util::logmsg("nom du fichier : " . $_FILES['file']['name']);
+		
+		if($_FILES['file']['error'] > 0)
+		{
+			if($_FILES['file']['error'] == 2)
+			{
+                $result["status"]=0;
+                $result["message"]="erreur téléversement trop volumineux";				
+			}
+			else
+			{
+				Util::logmsg("Erreur : Téléchargement " . 
+				          $_FILES['file']['error'] . 
+						  " fichier tmp : " .
+						  $FILES['file']['tmp_name'] );	
+                $result["status"]=0;
+                $result["message"]="erreur " . $_FILES['file']['error'] ;				
+			}
+		}
+		else
+		{
+			Util::logmsg("Tout est beaux");
+			
+			$chemin = "./images/joueurs/";
+			$nomFichier = "joueur$joueurId.png";
+			$dest = $chemin . $nomFichier;
+			
+			if(is_uploaded_file($_FILES['file']['tmp_name']))
+			{
+				Util::logmsg("is_uploaded_file est vrai");
+				if(move_uploaded_file($_FILES['file']['tmp_name'], $dest))
+				{
+					Util::logmsg("move_uploaded_file est vrai");
+					Util::logmsg("Déplacer le fichier téléversé vers: $dest");
+                    $result["status"]=1;
+                    $result["message"]="téléversement réussi.";				
+				}
+     			else
+	     		{
+		    	   Util::logmsg("Problème de transfert");
+                   $result["status"]=0;
+                   $result["message"]="erreur du téléversement";				
+			    }
+			}
+			else
+			{
+				Util::logmsg("is_uploaded_file est faux");
+			}
+		}
+	}
+	else
+	{
+       $result["status"]=0;
+       $result["message"]="erreur fichier vide";				
+	}
+	Util::logmsg("Quitte traiterImage");
+  }
+
 
 }
